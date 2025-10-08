@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import logo from "./logo.jpeg"; // Logo for navbar
-import chatbot from "./chatbot.jpeg"; // Save your chatbot image as chatbot.png in src
 import ChatWindow from "./components/ChatWindow";
 import InputBox from "./components/InputBox";
 
 function GetStarted() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hello! How can I help you today?" }
+    { sender: "bot", text: "Hello! I'm your medical assistant. I can provide general health information and wellness guidance. How can I help you today?" }
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -59,27 +58,8 @@ function GetStarted() {
       </nav>
 
       {/* Main Section */}
-      <main style={{ textAlign: "center", marginTop: "3rem" }}>
-        <img
-          src={chatbot}
-          alt="AI Chatbot"
-          style={{
-            width: "220px",
-            marginBottom: "2rem",
-            boxShadow: "0 4px 24px rgba(56,189,248,0.12)",
-            borderRadius: "50%",
-            background: "#fff",
-          }}
-        />
-        <h2 style={{ fontSize: "2rem", fontWeight: "700", color: "#222", marginBottom: "1rem" }}>
-          Welcome to LifeSense AI Chatbot
-        </h2>
-        <p style={{ fontSize: "1.15rem", color: "#444", marginBottom: "2.5rem" }}>
-          Start chatting with your medical recovery assistant.<br />
-          Get personalized support and guidance for your recovery journey.
-        </p>
-        <div className="app-container" style={{ maxWidth: 720, margin: "0 auto" }}>
-          <h3 className="chat-title" style={{ marginBottom: "1rem" }}>Chat</h3>
+      <main style={{ textAlign: "center", marginTop: "1rem" }}>
+        <div className="app-container" style={{ padding: "0 1rem", margin: "0 auto" }}>
           <ChatWindow messages={messages} />
           <InputBox onSend={handleSend} disabled={loading} />
         </div>
