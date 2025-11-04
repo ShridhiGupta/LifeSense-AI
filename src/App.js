@@ -1,21 +1,24 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { initializeApp } from "./utils/initializeApp";
-import HomePage from "./HomePage";
-import GetStarted from "./GetStarted";
-import Login from "./Login";
-import Features from "./Features";
-import About from "./About";
-import Contact from "./Contact";
-import PatientForm from "./PatientForm";
-import AdminLogin from "./AdminLogin";
-import AdminDashboard from "./AdminDashboard";
-import StaffSignup from "./StaffSignup";
-import StaffLogin from "./StaffLogin";
-import StaffDashboard from "./StaffDashboard";
-import PatientLogin from "./PatientLogin";
-import PatientProfile from "./PatientProfile";
-import PatientChat from "./PatientChat";
+import { initializeApp } from "./utils/initializeApp.js";
+import HomePage from "./HomePage.js";
+import GetStarted from "./GetStarted.js";
+import Login from "./Login.js";
+import Features from "./Features.js";
+import About from "./About.js";
+import Contact from "./Contact.js";
+import PatientForm from "./PatientForm.js";
+import AdminLogin from "./AdminLogin.js";
+import AdminDashboard from "./AdminDashboard.js";
+import StaffSignup from "./StaffSignup.js";
+import StaffLogin from "./StaffLogin.js";
+import StaffDashboard from "./StaffDashboard.js";
+import PatientLogin from "./PatientLogin.js";
+import PatientProfile from "./PatientProfile.js";
+import PatientChat from "./PatientChat.js";
+import PrivacyPolicy from "./PrivacyPolicy.js";
+import TermsOfService from "./TermsOfService.js";
+import Security from "./Security.js";
 import "./styles/App.css";
 
 function App() {
@@ -43,6 +46,9 @@ function App() {
           <Route path="/patient-login" element={<PatientLogin />} />
           <Route path="/patient-profile" element={<PatientProfile />} />
           <Route path="/patient-chat" element={<PatientChat />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/security" element={<Security />} />
         </Routes>
       </div>
     </Router>

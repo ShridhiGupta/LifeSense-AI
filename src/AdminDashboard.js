@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api.js";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -37,14 +38,48 @@ function AdminDashboard() {
     setPendingStaff(staff);
   };
 
-  const loadApprovedStaff = () => {
+  const loadApprovedStaff = async () => {
+    try {
+      // Try to load from API first
+      const response = await fetch(API_ENDPOINTS.ADMIN_STAFF);
+      const data = await response.json();
+      if (data.success && data.staff) {
+        const approved = data.staff.filter(s => s.approved === true);
+        if (approved.length > 0) {
+          setApprovedStaff(approved);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error loading staff from API:", error);
+    }
+    
+    // Fallback to localStorage
     const staff = JSON.parse(localStorage.getItem("approvedStaff") || "[]");
     setApprovedStaff(staff);
   };
 
-  const loadAllPatients = () => {
-    const patients = JSON.parse(localStorage.getItem("allPatients") || "[]");
-    setAllPatients(patients);
+  const loadAllPatients = async () => {
+    try {
+      // Try to load from API first
+      const response = await fetch(API_ENDPOINTS.ADMIN_PATIENTS);
+      const data = await response.json();
+      if (data.success && data.patients && data.patients.length > 0) {
+        setAllPatients(data.patients);
+        return;
+      }
+    } catch (error) {
+      console.error("Error loading patients from API:", error);
+    }
+    
+    // Fallback to localStorage
+    try {
+      const localPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+      setAllPatients(localPatients);
+    } catch (error) {
+      console.error("Error loading patients from localStorage:", error);
+      setAllPatients([]);
+    }
   };
 
   const loadAllAdmins = () => {
@@ -81,11 +116,19 @@ function AdminDashboard() {
     }
   };
 
-  const deletePatient = (patientId) => {
+  const deletePatient = async (patientId) => {
     if (window.confirm("Are you sure you want to delete this patient? This action cannot be undone.")) {
-      const updatedPatients = allPatients.filter(p => p.id !== patientId);
-      setAllPatients(updatedPatients);
-      localStorage.setItem("allPatients", JSON.stringify(updatedPatients));
+      try {
+        const response = await fetch(`${API_ENDPOINTS.ADMIN_PATIENTS}/${patientId}`, {
+          method: "DELETE"
+        });
+        if (response.ok) {
+          loadAllPatients(); // Reload the list
+        }
+      } catch (error) {
+        console.error("Error deleting patient:", error);
+        alert("Failed to delete patient");
+      }
     }
   };
 

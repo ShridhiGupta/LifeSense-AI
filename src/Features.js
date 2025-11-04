@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import HomepageChatbot from "./components/HomepageChatbot";
+import HomepageChatbot from "./components/HomepageChatbot.js";
 
 function Features() {
   const navigate = useNavigate();

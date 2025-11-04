@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { sendChatMessage, getPatientData } from "./utils/api.js";
 
 function PatientChat() {
   const [messages, setMessages] = useState([
@@ -25,11 +26,42 @@ function PatientChat() {
     loadPatientData(session.id);
   }, []);
 
-  const loadPatientData = (patientId) => {
-    const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
-    const patientData = allPatients.find(p => p.id === patientId);
-    console.log("Loaded patient data:", patientData);
-    setPatient(patientData);
+  const loadPatientData = async (patientId) => {
+    try {
+      // Try to get patient data from MongoDB
+      const response = await getPatientData(patientId);
+      console.log("Patient data response:", response);
+      
+      if (response.success && response.patient) {
+        setPatient({
+          patientId: response.patient.patient_id,
+          name: response.patient.name,
+          age: response.patient.age,
+          gender: response.patient.gender,
+          condition: response.patient.condition,
+          recoveryPeriod: response.patient.recovery_period,
+          currentStage: response.patient.current_stage,
+          doctorsNotes: response.patient.doctors_notes,
+          medications: response.patient.medications,
+          prescription: response.patient.prescription,
+          exercises: response.patient.exercises,
+          diet: response.patient.diet
+        });
+      } else {
+        // Fallback to localStorage
+        const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+        const patientData = allPatients.find(p => p.patientId === patientId);
+        console.log("Patient data from localStorage:", patientData);
+        setPatient(patientData);
+      }
+    } catch (error) {
+      console.error("Error loading patient data:", error);
+      // Fallback to localStorage
+      const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+      const patientData = allPatients.find(p => p.patientId === patientId);
+      console.log("Patient data from localStorage:", patientData);
+      setPatient(patientData);
+    }
   };
 
   const handleSend = async () => {
@@ -56,42 +88,35 @@ function PatientChat() {
     setLoading(true);
 
     try {
-      // Get lifestyle information for this patient
-      const lifestyleKey = `lifestyle_${patient?.id}`;
-      const lifestyleInfo = JSON.parse(localStorage.getItem(lifestyleKey) || "{}");
+      // Send message to our API with patient ID
+      const response = await sendChatMessage(inputText, patient.patientId);
+      console.log("Chat response:", response);
       
-      console.log("Sending to API:");
-      console.log("- Patient data:", patient);
-      console.log("- Lifestyle data:", lifestyleInfo);
-      console.log("- Message:", inputText);
-
-      const res = await fetch("http://localhost:5000/api/patient-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          message: inputText,
-          patientData: patient,
-          lifestyleData: lifestyleInfo
-        }),
-      });
-
-      const data = await res.json();
-      console.log("Received response:", data);
-      
-      setMessages((prev) => [...prev, {
-        sender: "bot",
-        text: data.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
-    } catch (err) {
-      console.error("Chat error:", err);
-      setMessages((prev) => [...prev, {
-        sender: "bot",
-        text: "Sorry, something went wrong. Please make sure the server is running on port 5000. Error: " + err.message,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+      if (response.success) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "bot",
+            text: response.response || "I'm sorry, I couldn't process your request at the moment.",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      } else {
+        throw new Error(response.error || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          text: "I'm having trouble connecting to the server. Please try again later.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleKeyPress = (e) => {
@@ -116,7 +141,7 @@ function PatientChat() {
         justifyContent: "center",
         fontFamily: "'Poppins', 'Inter', sans-serif"
       }}>
-        <div style={{ fontSize: "1.2rem", color: "#1A202C" }}>Loading...</div>
+        <div style={{ fontSize: "1.2rem", color: "#1A202C" }}>Loading patient data...</div>
       </div>
     );
   }

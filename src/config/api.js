@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || '';
 
 export const API_ENDPOINTS = {
   // Auth endpoints
@@ -17,9 +17,10 @@ export const API_ENDPOINTS = {
   ADMIN_PATIENTS: `${API_URL}/api/admin/patients`,
   ADMIN_CREATE: `${API_URL}/api/admin/create`,
   
-  // Chat endpoints
-  CHAT: `${API_URL}/api/chat`,
-  PATIENT_CHAT: `${API_URL}/api/patient-chat`,
+  // Chat endpoints - Using Netlify functions directly
+  CHAT: '/.netlify/functions/api/chat',
+  PATIENT_PROFILE: '/.netlify/functions/api/profile',
+  PATIENT_DATA: '/.netlify/functions/api/patient',
   
   // Health check
   HEALTH: `${API_URL}/api/health`

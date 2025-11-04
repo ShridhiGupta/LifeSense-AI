@@ -139,30 +139,33 @@ const HomepageChatbot = () => {
           <button
             onClick={() => setIsOpen(true)}
             style={{
-              width: '60px',
-              height: '60px',
+              width: '70px',
+              height: '70px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(14, 165, 233, 0.4)',
+              boxShadow: '0 8px 30px rgba(102, 126, 234, 0.5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '28px',
+              fontSize: '32px',
               color: 'white',
-              animation: 'pulse 2s infinite',
-              transition: 'transform 0.3s ease',
+              animation: 'pulse 3s ease-in-out infinite',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              position: 'relative',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.transform = 'scale(1.15) rotate(10deg)';
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(102, 126, 234, 0.6)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(102, 126, 234, 0.5)';
             }}
             title="Need help? Chat with LifeSense AI"
           >
-            🤖
+            <span style={{ animation: 'float 3s ease-in-out infinite' }}>🤖</span>
           </button>
         )}
 
@@ -170,69 +173,117 @@ const HomepageChatbot = () => {
         {isOpen && (
           <div
             style={{
-              width: '380px',
-              height: '600px',
+              width: '420px',
+              height: '650px',
               background: 'white',
-              borderRadius: '20px',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+              borderRadius: '24px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              animation: 'slideUp 0.3s ease-out',
+              animation: 'slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
             }}
           >
             {/* Header */}
             <div
               style={{
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                padding: '20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+                padding: '24px 20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {/* Animated background circles */}
+              <div style={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-20%',
+                width: '200px',
+                height: '200px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '50%',
+                animation: 'float 6s ease-in-out infinite',
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-30%',
+                left: '-10%',
+                width: '150px',
+                height: '150px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '50%',
+                animation: 'float 8s ease-in-out infinite',
+              }} />
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', zIndex: 1 }}>
                 <div
                   style={{
-                    width: '40px',
-                    height: '40px',
-                    background: 'rgba(255, 255, 255, 0.2)',
+                    width: '48px',
+                    height: '48px',
+                    background: 'linear-gradient(135deg, #fff 0%, #f0f0f0 100%)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '20px',
+                    fontSize: '24px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    animation: 'pulse 2s ease-in-out infinite',
                   }}
                 >
                   🤖
                 </div>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '16px' }}>LifeSense Assistant</div>
-                  <div style={{ fontSize: '12px', opacity: 0.9 }}>Online • Always here to help</div>
+                  <div style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.5px' }}>
+                    LifeSense AI
+                  </div>
+                  <div style={{ 
+                    fontSize: '13px', 
+                    opacity: 0.95,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                    <span style={{
+                      width: '8px',
+                      height: '8px',
+                      background: '#4ade80',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'pulse 2s ease-in-out infinite',
+                    }} />
+                    Online • Ready to assist
+                  </div>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(10px)',
                   border: 'none',
                   color: 'white',
-                  fontSize: '20px',
+                  fontSize: '22px',
                   cursor: 'pointer',
-                  width: '30px',
-                  height: '30px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'background 0.2s',
+                  transition: 'all 0.3s ease',
+                  zIndex: 1,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
+                  e.currentTarget.style.transform = 'rotate(90deg)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.transform = 'rotate(0deg)';
                 }}
               >
                 ✕
@@ -244,11 +295,12 @@ const HomepageChatbot = () => {
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '20px',
-                background: 'linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%)',
+                padding: '24px',
+                background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
+                gap: '16px',
+                backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(240, 147, 251, 0.03) 0%, transparent 50%)',
               }}
             >
               {messages.map((message, index) => (
@@ -262,18 +314,22 @@ const HomepageChatbot = () => {
                 >
                   <div
                     style={{
-                      maxWidth: '75%',
-                      padding: '12px 16px',
-                      borderRadius: message.type === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      maxWidth: '80%',
+                      padding: '14px 18px',
+                      borderRadius: message.type === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                       background: message.type === 'user' 
-                        ? 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)'
+                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                         : 'white',
-                      color: message.type === 'user' ? 'white' : '#334155',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      fontSize: '14px',
-                      lineHeight: '1.5',
+                      color: message.type === 'user' ? 'white' : '#1e293b',
+                      boxShadow: message.type === 'user'
+                        ? '0 4px 16px rgba(102, 126, 234, 0.3)'
+                        : '0 2px 12px rgba(0, 0, 0, 0.08)',
+                      fontSize: '14.5px',
+                      lineHeight: '1.6',
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
+                      position: 'relative',
+                      border: message.type === 'user' ? 'none' : '1px solid rgba(0, 0, 0, 0.05)',
                     }}
                   >
                     {message.text}
@@ -286,49 +342,78 @@ const HomepageChatbot = () => {
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                   <div
                     style={{
-                      padding: '12px 16px',
-                      borderRadius: '18px 18px 18px 4px',
+                      padding: '16px 20px',
+                      borderRadius: '20px 20px 20px 4px',
                       background: 'white',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
                       display: 'flex',
-                      gap: '4px',
+                      gap: '6px',
+                      alignItems: 'center',
                     }}
                   >
-                    <span style={{ animation: 'bounce 1.4s infinite', animationDelay: '0s' }}>●</span>
-                    <span style={{ animation: 'bounce 1.4s infinite', animationDelay: '0.2s' }}>●</span>
-                    <span style={{ animation: 'bounce 1.4s infinite', animationDelay: '0.4s' }}>●</span>
+                    <span style={{ 
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      animation: 'bounce 1.4s infinite', 
+                      animationDelay: '0s' 
+                    }} />
+                    <span style={{ 
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      animation: 'bounce 1.4s infinite', 
+                      animationDelay: '0.2s' 
+                    }} />
+                    <span style={{ 
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      animation: 'bounce 1.4s infinite', 
+                      animationDelay: '0.4s' 
+                    }} />
                   </div>
                 </div>
               )}
 
               {/* Quick Reply Buttons */}
               {messages.length === 1 && !isTyping && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
                   {quickReplies.map((reply, index) => (
                     <button
                       key={index}
                       onClick={() => handleQuickReply(reply.value)}
                       style={{
-                        background: 'white',
-                        border: '2px solid #e2e8f0',
-                        borderRadius: '12px',
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#0ea5e9',
+                        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                        border: '2px solid #e9ecef',
+                        borderRadius: '16px',
+                        padding: '14px 18px',
+                        fontSize: '14.5px',
+                        color: '#667eea',
                         cursor: 'pointer',
-                        fontWeight: '500',
-                        transition: 'all 0.2s',
+                        fontWeight: '600',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         textAlign: 'left',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f0f9ff';
-                        e.currentTarget.style.borderColor = '#0ea5e9';
-                        e.currentTarget.style.transform = 'translateX(4px)';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        e.currentTarget.style.borderColor = '#667eea';
+                        e.currentTarget.style.color = 'white';
+                        e.currentTarget.style.transform = 'translateX(8px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.3)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.borderColor = '#e2e8f0';
-                        e.currentTarget.style.transform = 'translateX(0)';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)';
+                        e.currentTarget.style.borderColor = '#e9ecef';
+                        e.currentTarget.style.color = '#667eea';
+                        e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
                       }}
                     >
                       {reply.text}
@@ -343,12 +428,13 @@ const HomepageChatbot = () => {
             {/* Input Area */}
             <div
               style={{
-                padding: '16px',
+                padding: '20px',
                 background: 'white',
-                borderTop: '1px solid #e2e8f0',
+                borderTop: '1px solid #f0f0f0',
                 display: 'flex',
-                gap: '8px',
+                gap: '12px',
                 alignItems: 'center',
+                boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.03)',
               }}
             >
               <input
@@ -356,50 +442,58 @@ const HomepageChatbot = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about recovery, medicines, or diet..."
+                placeholder="Type your message..."
                 style={{
                   flex: 1,
-                  padding: '12px 16px',
-                  borderRadius: '24px',
-                  border: '2px solid #e2e8f0',
-                  fontSize: '14px',
+                  padding: '14px 20px',
+                  borderRadius: '28px',
+                  border: '2px solid #e9ecef',
+                  fontSize: '14.5px',
                   outline: 'none',
-                  transition: 'border-color 0.2s',
-                  fontFamily: "'Inter', sans-serif",
+                  transition: 'all 0.3s ease',
+                  fontFamily: "'Inter', -apple-system, sans-serif",
+                  background: '#f8f9fa',
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#0ea5e9';
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.borderColor = '#e9ecef';
+                  e.currentTarget.style.background = '#f8f9fa';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               />
               <button
                 onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim()}
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '50px',
+                  height: '50px',
                   borderRadius: '50%',
                   background: inputValue.trim() 
-                    ? 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)'
-                    : '#e2e8f0',
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : '#e9ecef',
                   border: 'none',
                   color: 'white',
                   cursor: inputValue.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '18px',
+                  fontSize: '20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'transform 0.2s',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: inputValue.trim() ? '0 4px 16px rgba(102, 126, 234, 0.3)' : 'none',
                 }}
                 onMouseEnter={(e) => {
                   if (inputValue.trim()) {
-                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.boxShadow = inputValue.trim() ? '0 4px 16px rgba(102, 126, 234, 0.3)' : 'none';
                 }}
               >
                 ➤
@@ -414,28 +508,30 @@ const HomepageChatbot = () => {
         {`
           @keyframes pulse {
             0%, 100% {
-              box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+              box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+              transform: scale(1);
             }
             50% {
-              box-shadow: 0 4px 30px rgba(14, 165, 233, 0.7);
+              box-shadow: 0 4px 30px rgba(102, 126, 234, 0.7);
+              transform: scale(1.05);
             }
           }
 
           @keyframes slideUp {
             from {
               opacity: 0;
-              transform: translateY(20px);
+              transform: translateY(30px) scale(0.95);
             }
             to {
               opacity: 1;
-              transform: translateY(0);
+              transform: translateY(0) scale(1);
             }
           }
 
           @keyframes fadeIn {
             from {
               opacity: 0;
-              transform: translateY(10px);
+              transform: translateY(15px);
             }
             to {
               opacity: 1;
@@ -448,8 +544,35 @@ const HomepageChatbot = () => {
               transform: translateY(0);
             }
             30% {
-              transform: translateY(-10px);
+              transform: translateY(-12px);
             }
+          }
+
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0) rotate(0deg);
+            }
+            50% {
+              transform: translateY(-20px) rotate(5deg);
+            }
+          }
+
+          /* Custom scrollbar */
+          div::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          div::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          div::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+          }
+
+          div::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
           }
         `}
       </style>

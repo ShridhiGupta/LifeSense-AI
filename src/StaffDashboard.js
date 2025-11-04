@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from "./config/api.js";
+import { migrateLocalPatientsToBackend } from "./utils/migratePatients.js";
 
 function StaffDashboard() {
   const [activeTab, setActiveTab] = useState("view-patients");
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMigrating, setIsMigrating] = useState(false);
   const [patientForm, setPatientForm] = useState({
     name: "",
     age: "",
@@ -49,9 +52,27 @@ function StaffDashboard() {
     loadPatients();
   }, []);
 
-  const loadPatients = () => {
-    const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
-    setPatients(allPatients);
+  const loadPatients = async () => {
+    try {
+      // Try to load from API first
+      const response = await fetch(API_ENDPOINTS.ADMIN_PATIENTS);
+      const data = await response.json();
+      
+      if (data.success && data.patients) {
+        setPatients(data.patients);
+        // Also sync to localStorage for backward compatibility
+        localStorage.setItem("allPatients", JSON.stringify(data.patients));
+      } else {
+        // Fallback to localStorage if API fails
+        const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+        setPatients(allPatients);
+      }
+    } catch (error) {
+      console.error("Error loading patients:", error);
+      // Fallback to localStorage
+      const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+      setPatients(allPatients);
+    }
   };
 
   const handlePatientFormChange = (e) => {
@@ -63,13 +84,13 @@ function StaffDashboard() {
     return Math.floor(1000000 + Math.random() * 9000000).toString();
   };
 
-  const handlePatientSubmit = (e) => {
+  const handlePatientSubmit = async (e) => {
     e.preventDefault();
     
     if (editingPatientId) {
       // Update existing patient
       const updatedPatients = patients.map(p => 
-        p.id === editingPatientId 
+        p.id === editingPatientId || p._id === editingPatientId
           ? { ...p, ...patientForm, updatedAt: new Date().toISOString(), updatedBy: staffInfo.name }
           : p
       );
@@ -81,21 +102,68 @@ function StaffDashboard() {
       setActiveTab("view-patients");
     } else {
       // Add new patient
-      const patientId = generatePatientId();
-      const newPatient = {
-        id: patientId,
-        patientId: patientId,
-        ...patientForm,
-        addedBy: staffInfo.name,
-        addedByEmail: staffInfo.email,
-        addedAt: new Date().toISOString()
-      };
+      try {
+        const patientId = generatePatientId();
+        const newPatientData = {
+          patientId: patientId,
+          name: patientForm.name,
+          age: patientForm.age,
+          gender: patientForm.gender,
+          condition: patientForm.condition,
+          recoveryPeriod: patientForm.recoveryPeriod,
+          currentStage: patientForm.currentStage,
+          doctorsNotes: patientForm.doctorsNotes,
+          medications: patientForm.medications,
+          exercises: patientForm.exercises,
+          diet: patientForm.diet,
+          addedBy: staffInfo.name,
+          addedByEmail: staffInfo.email
+        };
 
-      const updatedPatients = [...patients, newPatient];
-      setPatients(updatedPatients);
-      localStorage.setItem("allPatients", JSON.stringify(updatedPatients));
+        // Save to backend API
+        const response = await fetch(API_ENDPOINTS.ADMIN_PATIENTS, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newPatientData),
+        });
 
-      alert(`Patient added successfully! Patient ID: ${patientId}\n\nPlease share this ID with the patient for login.`);
+        const data = await response.json();
+
+        if (data.success) {
+          // Reload patients from backend
+          await loadPatients();
+          alert(`Patient added successfully! Patient ID: ${patientId}\n\nPlease share this ID with the patient for login.`);
+        } else {
+          // Fallback to localStorage if API fails
+          const newPatient = {
+            id: patientId,
+            ...newPatientData,
+            addedAt: new Date().toISOString()
+          };
+          const updatedPatients = [...patients, newPatient];
+          setPatients(updatedPatients);
+          localStorage.setItem("allPatients", JSON.stringify(updatedPatients));
+          alert(`Patient added successfully (saved locally)! Patient ID: ${patientId}\n\nPlease share this ID with the patient for login.`);
+        }
+      } catch (error) {
+        console.error("Error adding patient:", error);
+        // Fallback to localStorage
+        const patientId = generatePatientId();
+        const newPatient = {
+          id: patientId,
+          patientId: patientId,
+          ...patientForm,
+          addedBy: staffInfo.name,
+          addedByEmail: staffInfo.email,
+          addedAt: new Date().toISOString()
+        };
+        const updatedPatients = [...patients, newPatient];
+        setPatients(updatedPatients);
+        localStorage.setItem("allPatients", JSON.stringify(updatedPatients));
+        alert(`Patient added successfully (saved locally)! Patient ID: ${patientId}\n\nPlease share this ID with the patient for login.`);
+      }
     }
 
     // Reset form
@@ -128,7 +196,7 @@ function StaffDashboard() {
       exercises: patient.exercises,
       diet: patient.diet
     });
-    setEditingPatientId(patient.id);
+    setEditingPatientId(patient._id || patient.id);
     setActiveTab("add-patient");
   };
 
@@ -151,7 +219,7 @@ function StaffDashboard() {
 
   const deletePatient = (patientId) => {
     if (window.confirm("Are you sure you want to delete this patient? This action cannot be undone.")) {
-      const updatedPatients = patients.filter(p => p.id !== patientId);
+      const updatedPatients = patients.filter(p => (p._id || p.id) !== patientId);
       setPatients(updatedPatients);
       localStorage.setItem("allPatients", JSON.stringify(updatedPatients));
     }
@@ -184,6 +252,27 @@ function StaffDashboard() {
     setStaffInfo(updatedSession);
     setEditingProfile(false);
     alert("Profile updated successfully!");
+  };
+
+  const handleMigration = async () => {
+    if (!window.confirm("This will migrate all patients from local storage to the database. Continue?")) {
+      return;
+    }
+    
+    setIsMigrating(true);
+    try {
+      const result = await migrateLocalPatientsToBackend();
+      if (result.success) {
+        alert(`Migration complete!\nTotal: ${result.total}\nMigrated: ${result.migrated}\nFailed: ${result.failed}`);
+        await loadPatients(); // Reload patients from backend
+      } else {
+        alert(`Migration failed: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`Migration error: ${error.message}`);
+    } finally {
+      setIsMigrating(false);
+    }
   };
 
   const logout = () => {
@@ -733,14 +822,32 @@ function StaffDashboard() {
 
         {activeTab === "view-patients" && (
           <div>
-            <h2 style={{ color: "#1e293b", marginBottom: "1rem" }}>All Patients</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h2 style={{ color: "#1e293b", margin: 0 }}>All Patients</h2>
+              <button
+                onClick={handleMigration}
+                disabled={isMigrating}
+                style={{
+                  background: isMigrating ? "#9ca3af" : "#8b5cf6",
+                  color: "#fff",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "0.5rem",
+                  cursor: isMigrating ? "not-allowed" : "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "500"
+                }}
+              >
+                {isMigrating ? "Migrating..." : "🔄 Migrate Local Data"}
+              </button>
+            </div>
             {patients.length === 0 ? (
               <div style={cardStyle}>
                 <p style={{ color: "#6b7280", textAlign: "center" }}>No patients added yet</p>
               </div>
             ) : (
               filteredPatients.map(patient => (
-                <div key={patient.id} style={cardStyle}>
+                <div key={patient._id || patient.id} style={cardStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
                     <div>
                       <h3 style={{ margin: 0, color: "#1e293b" }}>{patient.name}</h3>
@@ -765,7 +872,7 @@ function StaffDashboard() {
                         Added by: {patient.addedBy}
                       </span>
                       <button
-                        onClick={() => togglePatientDetails(patient.id)}
+                        onClick={() => togglePatientDetails(patient._id || patient.id)}
                         style={{
                           background: "#3b82f6",
                           color: "#fff",
@@ -777,7 +884,7 @@ function StaffDashboard() {
                           fontWeight: "500"
                         }}
                       >
-                        {expandedPatientId === patient.id ? "Hide Details" : "View Details"}
+                        {expandedPatientId === (patient._id || patient.id) ? "Hide Details" : "View Details"}
                       </button>
                       <button
                         onClick={() => editPatient(patient)}
@@ -795,7 +902,7 @@ function StaffDashboard() {
                         Edit
                       </button>
                       <button
-                        onClick={() => deletePatient(patient.id)}
+                        onClick={() => deletePatient(patient._id || patient.id)}
                         style={{
                           background: "#ef4444",
                           color: "#fff",
@@ -819,7 +926,7 @@ function StaffDashboard() {
                     <p style={{ margin: 0, color: "#6b7280" }}><strong>Recovery Period:</strong> {patient.recoveryPeriod}</p>
                   </div>
 
-                  {expandedPatientId === patient.id && (
+                  {expandedPatientId === (patient._id || patient.id) && (
                     <div>
                   {patient.currentStage && (
                     <p style={{ margin: "0 0 1rem 0", color: "#6b7280" }}>

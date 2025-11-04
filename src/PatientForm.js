@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { saveProfile } from "./utils/api.js";
+import { useNavigate } from "react-router-dom";
 
 function generatePatientId() {
   return Math.floor(1000000 + Math.random() * 9000000); // Generates a random 7-digit number
@@ -22,6 +24,7 @@ function PatientForm() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,20 +34,41 @@ function PatientForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setSaved(false);
     setError("");
+    
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error("Failed to save");
-      setSaved(true);
-    } catch (err) {
-      setError("Could not save patient info. Try again.");
+      // Send form data to our Netlify function (MongoDB)
+      const response = await saveProfile(form);
+      console.log("Save response:", response);
+      
+      if (response.success) {
+        // Also save to localStorage for client-side functionality
+        const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+        const existingIndex = allPatients.findIndex(p => p.patientId === form.patientId);
+        
+        if (existingIndex >= 0) {
+          allPatients[existingIndex] = form;
+        } else {
+          allPatients.push(form);
+        }
+        
+        localStorage.setItem("allPatients", JSON.stringify(allPatients));
+        
+        setSaving(false);
+        setSaved(true);
+        
+        // Redirect to patient login after saving
+        setTimeout(() => {
+          navigate("/patient-login");
+        }, 1500);
+      } else {
+        throw new Error(response.error || "Failed to save patient data");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setError("Failed to save patient data. Please try again.");
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const inputStyle = {
@@ -152,12 +176,12 @@ function PatientForm() {
             }}>
               {saving ? "Saving..." : "Save Patient Info"}
             </button>
-            {saved && <span style={{ color: "#16a34a", fontWeight: 600 }}>Saved!</span>}
+            {saved && <span style={{ color: "#16a34a", fontWeight: 600 }}>Saved! Redirecting to login...</span>}
             {error && <span style={{ color: "#dc2626" }}>{error}</span>}
           </div>
 
           <div style={{ marginTop: "0.5rem" }}>
-            <a href="/get-started" style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>Go to Chat</a>
+            <a href="/" style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>← Back to Home</a>
           </div>
         </form>
       </div>
@@ -166,5 +190,3 @@ function PatientForm() {
 }
 
 export default PatientForm;
-
-

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 15px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>LifeSense AI - API Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Connection</h2>
+        <button onclick="testConnection()">Test Database Connection</button>
+        <div id="connection-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test Patient Creation</h2>
+        <button onclick="testPatientCreation()">Create Test Patient</button>
+        <div id="patient-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Chat Message</h2>
+        <button onclick="testChatMessage()">Send Test Message</button>
+        <div id="chat-result"></div>
+    </div>
+
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/test-connection');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>Success!</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>Error: ${response.status}</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testPatientCreation() {
+            const resultDiv = document.getElementById('patient-result');
+            resultDiv.innerHTML = '<p>Creating test patient...</p>';
+            
+            try {
+                const testPatient = {
+                    patientId: "TEST-" + Date.now(),
+                    name: "Test Patient",
+                    age: "30",
+                    gender: "Male",
+                    condition: "Test Condition",
+                    recoveryPeriod: "4 weeks",
+                    currentStage: "Initial",
+                    doctorsNotes: "Test notes",
+                    medications: "Test medications",
+                    prescription: "Test prescription",
+                    exercises: "Test exercises",
+                    diet: "Test diet"
+                };
+                
+                const response = await fetch('/.netlify/functions/api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testPatient),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>Patient Created Successfully!</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>Error: ${response.status}</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testChatMessage() {
+            const resultDiv = document.getElementById('chat-result');
+            resultDiv.innerHTML = '<p>Sending test message...</p>';
+            
+            try {
+                const testMessage = {
+                    message: "Hello, this is a test message",
+                    patientId: "TEST-" + Date.now()
+                };
+                
+                const response = await fetch('/.netlify/functions/api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testMessage),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>Message Sent Successfully!</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>Error: ${response.status}</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

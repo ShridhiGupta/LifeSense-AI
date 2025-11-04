@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "./config/api";
+import { API_ENDPOINTS } from "./config/api.js";
 
 function Login() {
   const [activeTab, setActiveTab] = useState("patient");
@@ -10,67 +10,129 @@ function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handlePatientLogin = (e) => {
+  const handlePatientLogin = async (e) => {
   e.preventDefault();
   setError("");
 
-  // ✅ Get all registered patients from localStorage
-  const patientList = JSON.parse(localStorage.getItem("patientList") || "[]");
+  try {
+    // First, try to login via API (database)
+    const response = await fetch(API_ENDPOINTS.PATIENT_LOGIN, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ patientId }),
+    });
 
-  // ✅ Check if entered email & password match any saved patient
-  const foundPatient = patientList.find(
-    (patient) =>
-      patient.email === patientCredentials.email &&
-      patient.password === patientCredentials.password
-  );
+    const data = await response.json();
 
-  if (foundPatient) {
-    // ✅ Store login session
-    const sessionData = {
-      email: foundPatient.email,
-      role: "patient",
-      loginTime: new Date().toISOString(),
-    };
-    localStorage.setItem("patientSession", JSON.stringify(sessionData));
-
-    // ✅ Redirect to patient profile or chat
-    navigate("/patient-profile");
-  } else {
-    // ❌ Invalid credentials
-    setError("Invalid credentials. Please try again.");
+    if (data.success) {
+      const sessionData = {
+        ...data.user,
+        role: "patient",
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem("patientSession", JSON.stringify(sessionData));
+      navigate("/patient-profile");
+      return;
+    }
+  } catch (error) {
+    console.error("API login error:", error);
   }
+
+  // Fallback: Check localStorage for patients
+  try {
+    const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+    const patient = allPatients.find(p => p.patientId === patientId || p.id === patientId);
+
+    if (patient) {
+      const sessionData = {
+        ...patient,
+        role: "patient",
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem("patientSession", JSON.stringify(sessionData));
+      navigate("/patient-profile");
+      return;
+    }
+  } catch (localError) {
+    console.error("LocalStorage login error:", localError);
+  }
+
+  // If both methods fail, show error
+  setError("Invalid credentials. Please try again.");
 };
 
 
-  const handleStaffLogin = (e) => {
+  const handleStaffLogin = async (e) => {
   e.preventDefault();
   setError("");
 
-  // ✅ Get all registered staff from localStorage
-  const staffList = JSON.parse(localStorage.getItem("staffList") || "[]");
+  try {
+    // First, try to login via API (database)
+    const response = await fetch(API_ENDPOINTS.STAFF_LOGIN, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+        email: staffCredentials.email, 
+        password: staffCredentials.password 
+      }),
+    });
 
-  // ✅ Check if entered email & password match any staff account
-  const foundStaff = staffList.find(
-    (staff) =>
-      staff.email === staffCredentials.email &&
-      staff.password === staffCredentials.password
-  );
+    const data = await response.json();
 
-  if (foundStaff) {
-    // ✅ Store login session
-    const sessionData = {
-      email: foundStaff.email,
-      role: "staff",
-      loginTime: new Date().toISOString(),
-    };
-    localStorage.setItem("staffSession", JSON.stringify(sessionData));
-
-    // ✅ Redirect to dashboard
-    navigate("/staff-dashboard");
-  } else {
-    // ❌ No match found
-    setError("Invalid credentials. Please try again.");
+    if (data.success) {
+      const sessionData = {
+        ...data.user,
+        role: "staff",
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem("staffSession", JSON.stringify(sessionData));
+      navigate("/staff-dashboard");
+      return;
+    }
+  } catch (error) {
+    console.error("API staff login error:", error);
   }
+
+  // Fallback: Check localStorage for staff
+  try {
+    // Check staffList first
+    const staffList = JSON.parse(localStorage.getItem("staffList") || "[]");
+    let foundStaff = staffList.find(
+      (staff) =>
+        staff.email === staffCredentials.email &&
+        staff.password === staffCredentials.password
+    );
+
+    // Also check approvedStaff
+    if (!foundStaff) {
+      const approvedStaff = JSON.parse(localStorage.getItem("approvedStaff") || "[]");
+      foundStaff = approvedStaff.find(
+        (staff) =>
+          staff.email === staffCredentials.email &&
+          staff.password === staffCredentials.password
+      );
+    }
+
+    if (foundStaff) {
+      const sessionData = {
+        ...foundStaff,
+        role: "staff",
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem("staffSession", JSON.stringify(sessionData));
+      navigate("/staff-dashboard");
+      return;
+    }
+  } catch (localError) {
+    console.error("LocalStorage staff login error:", localError);
+  }
+
+  // If both methods fail, show error
+  setError("Invalid credentials. Please try again.");
 };
 
 

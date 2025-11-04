@@ -1,29 +1,83 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getPatientData } from "./utils/api.js";
 
 function PatientLogin() {
   const [patientId, setPatientId] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // Get all patients from localStorage
-    const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
-    const patient = allPatients.find(p => p.id === patientId);
-
-    if (patient) {
-      // Store patient session in localStorage
-      localStorage.setItem("patientSession", JSON.stringify({
-        id: patient.id,
-        name: patient.name,
-        loginTime: new Date().toISOString()
-      }));
-      navigate("/patient-profile");
-    } else {
-      setError("Patient ID not found. Please check your ID and try again.");
+    try {
+      // Try to get patient data from MongoDB first
+      const response = await getPatientData(patientId);
+      console.log("Login response:", response);
+      
+      if (response.success && response.patient) {
+        const patient = response.patient;
+        
+        // Store patient session in localStorage
+        localStorage.setItem("patientSession", JSON.stringify({
+          id: patient.patient_id,
+          name: patient.name,
+          loginTime: new Date().toISOString()
+        }));
+        
+        // Also store in allPatients for consistency
+        const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+        const existingIndex = allPatients.findIndex(p => p.patientId === patient.patient_id);
+        
+        const patientData = {
+          patientId: patient.patient_id,
+          name: patient.name,
+          age: patient.age,
+          gender: patient.gender,
+          condition: patient.condition,
+          recoveryPeriod: patient.recovery_period,
+          currentStage: patient.current_stage,
+          doctorsNotes: patient.doctors_notes,
+          medications: patient.medications,
+          prescription: patient.prescription,
+          exercises: patient.exercises,
+          diet: patient.diet
+        };
+        
+        if (existingIndex >= 0) {
+          allPatients[existingIndex] = patientData;
+        } else {
+          allPatients.push(patientData);
+        }
+        
+        localStorage.setItem("allPatients", JSON.stringify(allPatients));
+        
+        navigate("/patient-chat");
+      } else {
+        setError("Patient ID not found. Please check your ID and try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      // Fallback to localStorage if MongoDB is not accessible
+      const allPatients = JSON.parse(localStorage.getItem("allPatients") || "[]");
+      const patient = allPatients.find(p => p.patientId === patientId);
+      
+      if (patient) {
+        // Store patient session in localStorage
+        localStorage.setItem("patientSession", JSON.stringify({
+          id: patient.patientId,
+          name: patient.name,
+          loginTime: new Date().toISOString()
+        }));
+        navigate("/patient-chat");
+      } else {
+        setError("Patient ID not found. Please check your ID and try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,14 +112,14 @@ function PatientLogin() {
 
   const buttonStyle = {
     width: "100%",
-    background: "linear-gradient(90deg, #06b6d4 0%, #0891b2 100%)",
+    background: loading ? "#94a3b8" : "linear-gradient(90deg, #06b6d4 0%, #0891b2 100%)",
     color: "#fff",
     border: "none",
     borderRadius: "0.5rem",
     padding: "0.75rem",
     fontSize: "1rem",
     fontWeight: "600",
-    cursor: "pointer",
+    cursor: loading ? "not-allowed" : "pointer",
     marginTop: "0.5rem"
   };
 
@@ -108,6 +162,7 @@ function PatientLogin() {
               style={inputStyle}
               placeholder="Enter your Patient ID"
               required
+              disabled={loading}
             />
           </div>
           
@@ -125,8 +180,8 @@ function PatientLogin() {
             </div>
           )}
           
-          <button type="submit" style={buttonStyle}>
-            Login as Patient
+          <button type="submit" style={buttonStyle} disabled={loading}>
+            {loading ? "Logging in..." : "Login as Patient"}
           </button>
         </form>
         

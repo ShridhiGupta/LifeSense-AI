@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import logo from "./logo.jpeg"; // Logo for navbar
-import ChatWindow from "./components/ChatWindow";
-import InputBox from "./components/InputBox";
+import ChatWindow from "./components/ChatWindow.js";
+import InputBox from "./components/InputBox.js";
 
 function GetStarted() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hello! I'm your medical assistant. I can provide general health information and wellness guidance. How can I help you today?" }
+    { sender: "bot", text: "👋 Hello! I'm your AI medical assistant.\n\nI can help you with:\n• Health information & wellness guidance\n• Recovery tips & exercises\n• Medication information\n• Dietary recommendations\n\nHow can I assist you today?" }
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -23,44 +23,109 @@ function GetStarted() {
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Sorry, something went wrong." }
+        { sender: "bot", text: "⚠️ Sorry, I'm having trouble connecting right now. Please try again in a moment." }
       ]);
     }
     setLoading(false);
   };
+  
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 100%)",
-        fontFamily: "sans-serif",
+        background: "#ffffff",
+        fontFamily: "'Inter', -apple-system, sans-serif",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
+
       {/* Navbar */}
       <nav
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "2rem 4rem 1rem 4rem",
+          padding: "1.2rem 3rem",
+          background: "#ffffff",
+          borderBottom: "1px solid #e5e7eb",
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", fontWeight: "bold", fontSize: "1.3rem", color: "#2563eb" }}>
-          <img src={logo} alt="LifeSense AI Logo" style={{ width: 40, height: 40, marginRight: "0.7rem" }} />
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          fontWeight: "800", 
+          fontSize: "1.5rem", 
+          color: "#667eea",
+        }}>
+          <img src={logo} alt="LifeSense AI Logo" style={{ 
+            width: 45, 
+            height: 45, 
+            marginRight: "0.8rem",
+            borderRadius: "50%",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          }} />
           LifeSense AI
         </div>
-        <div style={{ display: "flex", gap: "2rem", fontSize: "1rem" }}>
-          <a href="/" style={{ color: "#222", textDecoration: "none" }}>Home</a>
-          <a href="#" style={{ color: "#222", textDecoration: "none" }}>Features</a>
-          <a href="#" style={{ color: "#222", textDecoration: "none" }}>Testimonials</a>
-          <a href="#" style={{ color: "#222", textDecoration: "none" }}>Pricing</a>
+        <div style={{ display: "flex", gap: "1rem", fontSize: "1rem", alignItems: "center" }}>
+          <a href="/" style={{ 
+            color: "#ffffff", 
+            textDecoration: "none", 
+            fontWeight: "600",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            padding: "0.6rem 1.5rem",
+            borderRadius: "10px",
+            transition: "all 0.3s ease",
+            boxShadow: "0 2px 8px rgba(102, 126, 234, 0.3)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(102, 126, 234, 0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(102, 126, 234, 0.3)";
+          }}
+          >Home</a>
+          <a href="/login" style={{ 
+            color: "#ffffff", 
+            textDecoration: "none", 
+            fontWeight: "600",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            padding: "0.6rem 1.5rem",
+            borderRadius: "10px",
+            transition: "all 0.3s ease",
+            boxShadow: "0 2px 8px rgba(102, 126, 234, 0.3)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(102, 126, 234, 0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(102, 126, 234, 0.3)";
+          }}
+          >Login</a>
         </div>
       </nav>
 
       {/* Main Section */}
-      <main style={{ textAlign: "center", marginTop: "1rem" }}>
-        <div className="app-container" style={{ padding: "0 1rem", margin: "0 auto" }}>
-          <ChatWindow messages={messages} />
+      <main style={{ 
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        padding: "0",
+        background: "#ffffff",
+      }}>
+        <div className="app-container" style={{ 
+          maxWidth: "1200px",
+          width: "100%",
+          height: "calc(100vh - 90px)",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <ChatWindow messages={messages} loading={loading} />
           <InputBox onSend={handleSend} disabled={loading} />
         </div>
       </main>
