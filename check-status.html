@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeSense AI - Status Check</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .status-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ccc;
+        }
+        .status-item.checking {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .status-item.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .status-item.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .response-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-message {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 LifeSense AI - System Status Check</h1>
+        
+        <div id="status-container">
+            <div class="status-item checking" id="server-status">
+                ⏳ Checking server status...
+            </div>
+            
+            <div class="status-item checking" id="api-status">
+                ⏳ Checking API endpoint...
+            </div>
+            
+            <div class="status-item checking" id="ai-status">
+                ⏳ Checking AI integration...
+            </div>
+        </div>
+
+        <h2>Test Chat API</h2>
+        <input type="text" class="test-message" id="test-message" placeholder="Type a test message (e.g., 'I'm feeling anxious')" value="I'm feeling anxious">
+        <button onclick="testChat()">Send Test Message</button>
+        <button onclick="location.reload()">Refresh Status</button>
+        
+        <div id="chat-response"></div>
+    </div>
+
+    <script>
+        // Check server health
+        async function checkServer() {
+            const statusDiv = document.getElementById('server-status');
+            try {
+                const res = await fetch('http://localhost:3001/api/health');
+                const data = await res.json();
+                
+                if (data.status === 'Server is running') {
+                    statusDiv.className = 'status-item success';
+                    statusDiv.innerHTML = '✅ Server is running on http://localhost:3001';
+                } else {
+                    statusDiv.className = 'status-item error';
+                    statusDiv.innerHTML = '❌ Server responded but with unexpected data';
+                }
+            } catch (err) {
+                statusDiv.className = 'status-item error';
+                statusDiv.innerHTML = `❌ Server is NOT running<br><small>Error: ${err.message}</small><br><small>Please run: <code>node server.js</code></small>`;
+            }
+        }
+
+        // Check API endpoint
+        async function checkAPI() {
+            const statusDiv = document.getElementById('api-status');
+            try {
+                const res = await fetch('http://localhost:3001/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patientId: 'general', message: 'test' })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success && data.response) {
+                    statusDiv.className = 'status-item success';
+                    statusDiv.innerHTML = '✅ Chat API is working';
+                } else {
+                    statusDiv.className = 'status-item error';
+                    statusDiv.innerHTML = '❌ Chat API responded but with unexpected format';
+                }
+            } catch (err) {
+                statusDiv.className = 'status-item error';
+                statusDiv.innerHTML = `❌ Chat API failed<br><small>Error: ${err.message}</small>`;
+            }
+        }
+
+        // Check AI integration
+        async function checkAI() {
+            const statusDiv = document.getElementById('ai-status');
+            try {
+                const res = await fetch('http://localhost:3001/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patientId: 'general', message: 'Hello' })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success && data.response) {
+                    // Check if response looks like AI-generated (not hardcoded)
+                    const isAI = data.response.length > 100 && !data.response.includes('Recovery guidance');
+                    
+                    if (isAI) {
+                        statusDiv.className = 'status-item success';
+                        statusDiv.innerHTML = '✅ Google AI is working and generating responses';
+                    } else {
+                        statusDiv.className = 'status-item error';
+                        statusDiv.innerHTML = '⚠️ API works but might be using fallback responses (not AI)<br><small>Response: ' + data.response.substring(0, 100) + '...</small>';
+                    }
+                } else {
+                    statusDiv.className = 'status-item error';
+                    statusDiv.innerHTML = '❌ AI check failed';
+                }
+            } catch (err) {
+                statusDiv.className = 'status-item error';
+                statusDiv.innerHTML = `❌ AI check failed<br><small>Error: ${err.message}</small>`;
+            }
+        }
+
+        // Test chat with custom message
+        async function testChat() {
+            const message = document.getElementById('test-message').value;
+            const responseDiv = document.getElementById('chat-response');
+            
+            responseDiv.innerHTML = '<div class="status-item checking">⏳ Sending message to API...</div>';
+            
+            try {
+                console.log('Sending message:', message);
+                
+                const res = await fetch('http://localhost:3001/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patientId: 'general', message: message })
+                });
+                
+                console.log('Response status:', res.status);
+                
+                const data = await res.json();
+                console.log('Response data:', data);
+                
+                if (data.success && data.response) {
+                    responseDiv.innerHTML = `
+                        <div class="status-item success">
+                            ✅ Success! Received response from AI
+                        </div>
+                        <div class="response-box">${data.response}</div>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `
+                        <div class="status-item error">
+                            ❌ API responded but with unexpected format
+                        </div>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                responseDiv.innerHTML = `
+                    <div class="status-item error">
+                        ❌ Failed to send message<br>
+                        <small>Error: ${err.message}</small><br>
+                        <small>Make sure the server is running: <code>node server.js</code></small>
+                    </div>
+                `;
+            }
+        }
+
+        // Run checks on page load
+        window.onload = async () => {
+            await checkServer();
+            await checkAPI();
+            await checkAI();
+        };
+    </script>
+</body>
+</html>

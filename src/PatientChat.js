@@ -6,7 +6,7 @@ function PatientChat() {
   const [messages, setMessages] = useState([
     { 
       sender: "bot", 
-      text: "Hello! I'm here to help with your recovery journey. I have access to your medical information and can provide personalized guidance. How can I assist you today? 😊",
+      text: "Welcome back! 👋 I'm here to support your wellness journey. What can I help you with today?",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -88,8 +88,8 @@ function PatientChat() {
     setLoading(true);
 
     try {
-      // Send message to our API with patient ID
-      const response = await sendChatMessage(inputText, patient.patientId);
+      // Send message to our API with patient ID and full patient data
+      const response = await sendChatMessage(inputText, patient.patientId, patient);
       console.log("Chat response:", response);
       
       if (response.success) {

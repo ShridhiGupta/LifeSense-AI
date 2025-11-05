@@ -42,7 +42,39 @@ const HomepageChatbot = () => {
     handleSendMessage(value);
   };
 
-  const getBotResponse = (userMessage) => {
+  const getBotResponse = async (userMessage) => {
+    try {
+      // Detect if running locally or on production
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocal ? 'http://localhost:3001/api/chat' : '/.netlify/functions/api';
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patientId: 'general',
+          message: userMessage
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('API Error:', response.status, response.statusText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('API Response:', data);
+      return data.response || "I'm here to help! Please try again.";
+    } catch (error) {
+      console.error('Error getting bot response:', error);
+      // Fallback to local response if API fails
+      return getLocalBotResponse(userMessage);
+    }
+  };
+
+  const getLocalBotResponse = (userMessage) => {
     const lowerMessage = userMessage.toLowerCase();
 
     // Recovery tips
@@ -89,11 +121,11 @@ const HomepageChatbot = () => {
     return "I'm here to help! 😊\n\nI can assist you with:\n• **Recovery guidance** and exercises\n• **Dietary recommendations** for healing\n• **Medicine information** and reminders\n• **Symptom assessment** and care tips\n• **Appointment scheduling** and support\n\nPlease ask me anything about your health and recovery, or choose from the quick options below!";
   };
 
-  const handleSendMessage = (messageText = null) => {
+  const handleSendMessage = async (messageText = null) => {
+    // Add user message
     const text = messageText || inputValue.trim();
     if (!text) return;
 
-    // Add user message
     const userMessage = {
       type: 'user',
       text: text,
@@ -105,16 +137,31 @@ const HomepageChatbot = () => {
     // Show typing indicator
     setIsTyping(true);
 
-    // Simulate bot response delay
-    setTimeout(() => {
-      const botResponse = {
-        type: 'bot',
-        text: getBotResponse(text),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    // Get bot response from AI API
+    try {
+      const botResponseText = await getBotResponse(text);
+      setTimeout(() => {
+        const botResponse = {
+          type: 'bot',
+          text: botResponseText,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botResponse]);
+        setIsTyping(false);
+      }, 500);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Fallback to local response
+      setTimeout(() => {
+        const botResponse = {
+          type: 'bot',
+          text: getLocalBotResponse(text),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botResponse]);
+        setIsTyping(false);
+      }, 1000 + Math.random() * 1000);
+    }
   };
 
   const handleKeyPress = (e) => {

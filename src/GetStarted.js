@@ -5,25 +5,53 @@ import InputBox from "./components/InputBox.js";
 
 function GetStarted() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "👋 Hello! I'm your AI medical assistant.\n\nI can help you with:\n• Health information & wellness guidance\n• Recovery tips & exercises\n• Medication information\n• Dietary recommendations\n\nHow can I assist you today?" }
+    { sender: "bot", text: "👋 Hello! I'm your comprehensive AI medical assistant.\n\nI can help you with:\n• General medical and health-related questions\n• Information about diseases, symptoms, and treatments\n• Healthy lifestyle practices and preventive care\n• Medication information and uses\n• Guidance on when to seek professional medical help\n• Recovery support for surgeries or illnesses\n• Wellness and nutrition advice\n\n⚠️ Important: I provide health information and guidance, but I am NOT a substitute for professional medical consultation. For emergencies, please call emergency services immediately.\n\nHow can I assist you today?" }
   ]);
   const [loading, setLoading] = useState(false);
 
   const handleSend = async (text) => {
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setLoading(true);
+    
+    console.log('📤 Sending message to API:', text);
+    console.log('API URL: http://localhost:3001/api/chat');
+    
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch("http://localhost:3001/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ patientId: "general", message: text }),
       });
+      
+      console.log('📥 Response status:', res.status, res.statusText);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      setMessages((prev) => [...prev, { sender: "bot", text: data.text }]);
+      console.log('✅ Response data:', data);
+      console.log('Bot response:', data.response);
+      
+      setMessages((prev) => [...prev, { sender: "bot", text: data.response || "I'm here to help!" }]);
     } catch (err) {
+      console.error("❌ Chat error:", err);
+      console.error("Error details:", err.message);
+      
+      // Show specific error message
+      let errorMessage = "⚠️ Sorry, I'm having trouble connecting to the server. ";
+      
+      if (err.message.includes('Failed to fetch')) {
+        errorMessage += "Please make sure the server is running (node server.js).";
+      } else if (err.message.includes('HTTP 500')) {
+        errorMessage += "The server encountered an error. Check the server console for details.";
+      } else {
+        errorMessage += err.message;
+      }
+      
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "⚠️ Sorry, I'm having trouble connecting right now. Please try again in a moment." }
+        { sender: "bot", text: errorMessage }
       ]);
     }
     setLoading(false);

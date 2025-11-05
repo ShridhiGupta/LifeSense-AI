@@ -10,7 +10,7 @@ const app = express();
 const port = 3001;
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+const MONGODB_URI = process.env.MONGODB_URI;
 let db = null;
 let mongoClient = null;
 
@@ -23,12 +23,7 @@ let chatMessagesCollection = null;
 // Connect to MongoDB
 async function connectToDatabase() {
   try {
-    mongoClient = new MongoClient(MONGODB_URI, {
-      tls: true,
-      tlsAllowInvalidCertificates: true,
-      tlsAllowInvalidHostnames: true,
-      serverSelectionTimeoutMS: 5000
-    });
+    mongoClient = new MongoClient(MONGODB_URI);
     await mongoClient.connect();
     db = mongoClient.db("LifeSenseAI");
     
@@ -58,13 +53,62 @@ app.use(express.json());
 
 // Initialize Google AI
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY
+  apiKey: 'AIzaSyCzMGZRs6SvSN0msMQCWyLMb4xaiTdPh_0'
 });
 
 // Simple API Routes (minimal setup)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running' });
 });
+
+// Comprehensive Healthcare System Instruction
+const HEALTHCARE_SYSTEM_INSTRUCTION = `Role & Objective
+
+You are a comprehensive medical assistant chatbot designed to provide healthcare information and support to all users. Your role is to deliver accurate, evidence-based medical information to help people understand health conditions, treatment options, and wellness practices.
+
+Core Responsibilities:
+- Answer general medical and health-related questions
+- Provide information about diseases, symptoms, and treatments
+- Suggest healthy lifestyle practices and preventive care measures
+- Explain medications and their uses
+- Offer guidance on when to seek professional medical help
+- Support patients recovering from surgeries or illnesses
+- Provide wellness and nutrition advice
+
+Important Guidelines:
+
+1. Accuracy & Evidence-Based Information
+- Provide responses based on medical research and professional guidelines
+- Always cite reliable sources when applicable
+- Be honest about the limitations of medical knowledge
+
+2. Personalization
+- Adapt responses based on user's age, gender, medical history, and specific conditions when provided
+- Ask clarifying questions to understand the user's situation better
+- Provide tailored advice based on individual health profiles
+
+3. Safety & Emergency Handling
+- CRITICAL: If a user reports severe symptoms (chest pain, difficulty breathing, severe bleeding, loss of consciousness, severe allergic reactions, etc.) → immediately advise: "Please seek emergency medical care immediately by calling emergency services or visiting the nearest hospital."
+- For potentially serious but non-emergency symptoms, recommend consulting a healthcare professional
+- Never delay emergency advice
+
+4. Scope & Limitations
+- Provide health information and guidance, NOT formal medical diagnosis
+- Make clear that you are NOT a substitute for professional medical consultation
+- Encourage users to consult licensed healthcare professionals for diagnosis and treatment planning
+- Respect when a query is outside medical scope and politely redirect
+
+5. Tone & Communication
+- Use simple, clear, non-technical language (unless user demonstrates medical knowledge)
+- Be empathetic, supportive, and non-judgmental
+- Show genuine concern for user's wellbeing
+- Avoid being alarmist while maintaining appropriate caution
+- Encourage healthy lifestyle choices and preventive care
+
+6. Privacy & Confidentiality
+- Treat all user information with confidentiality
+- Never store or misuse personal health information
+- Explain data privacy policies when asked`;
 
 // Chat API endpoint - handles both general and patient-specific chats
 app.post('/api/chat', async (req, res) => {
@@ -86,37 +130,48 @@ app.post('/api/chat', async (req, res) => {
   
   const isGeneralChat = patientId === 'general';
   
-  // For now, return test responses
-  // In production, this would call Google AI with appropriate system instructions
   let botResponse = '';
   
   if (isGeneralChat) {
-    // General homepage chatbot responses
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes('recovery') || lowerMessage.includes('exercise')) {
-      botResponse = "🧘‍♀️ Recovery is a journey! Here are some tips:\n\n• Get adequate rest (7-8 hours daily)\n• Follow prescribed exercises regularly\n• Stay hydrated\n• Maintain a positive mindset\n\nFor personalized guidance, please login to your account.";
-    } else if (lowerMessage.includes('diet') || lowerMessage.includes('food')) {
-      botResponse = "🥗 A healthy diet is crucial for recovery! Consider:\n\n• Protein-rich foods (eggs, chicken, fish)\n• Calcium sources (milk, yogurt, leafy greens)\n• Vitamin C (citrus fruits, berries)\n• Whole grains\n\nFor a personalized meal plan, login to your patient dashboard.";
-    } else if (lowerMessage.includes('medicine') || lowerMessage.includes('medication')) {
-      botResponse = "💊 For accurate medicine information:\n\n1. Login to your account\n2. Check your prescribed medications\n3. View dosage and precautions\n4. See side effects and interactions\n\nWould you like me to guide you to the login page?";
-    } else {
-      botResponse = "👋 Hello! I'm LifeSense AI. I can help you with:\n\n• Recovery guidance\n• Dietary recommendations\n• Medicine information\n• Appointment scheduling\n• Emotional support\n\nFor personalized assistance, please login to your account.";
+    // General healthcare chatbot - Use Google AI with comprehensive system instruction
+    console.log('📝 Processing general chat message:', message);
+    try {
+      console.log('🤖 Initializing Google AI model...');
+      const model = ai.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: HEALTHCARE_SYSTEM_INSTRUCTION
+      });
+      
+      console.log('📤 Sending message to Google AI...');
+      const result = await model.generateContent(message);
+      const response = await result.response;
+      botResponse = response.text();
+      
+      console.log('✅ AI Response generated for general chat');
+      console.log('📨 Response preview:', botResponse.substring(0, 100) + '...');
+    } catch (error) {
+      console.error('❌ Error calling Google AI:', error.message);
+      console.error('Full error:', error);
+      // Fallback response if AI fails
+      botResponse = "I apologize, but I'm having trouble processing your request right now. Please try again in a moment. If you have a medical emergency, please call emergency services immediately.";
     }
   } else {
     // Patient-specific chatbot response - fetch patient data first
-    let patientData = req.body.patientData;
+    let patientData = null;
     
-    // If no patientData in request, try to get from MongoDB
-    if (!patientData && patientsCollection) {
+    // Try to get patient data from MongoDB
+    if (patientsCollection) {
       try {
         patientData = await patientsCollection.findOne({ patient_id: patientId });
-        console.log('Patient data found in database:', patientData ? 'Yes' : 'No');
+        console.log('Patient data found:', patientData ? 'Yes' : 'No');
       } catch (error) {
-        console.error('Error fetching patient data from database:', error.message);
+        console.error('Error fetching patient data:', error.message);
       }
-    } else if (patientData) {
-      console.log('Using patient data from request');
+    }
+    
+    // If no database, try localStorage data (sent from frontend)
+    if (!patientData && req.body.patientData) {
+      patientData = req.body.patientData;
     }
     
     const lowerMessage = message.toLowerCase();
@@ -130,51 +185,46 @@ app.post('/api/chat', async (req, res) => {
       }
     } else if (lowerMessage.includes('condition') || lowerMessage.includes('diagnosis')) {
       if (patientData && patientData.condition) {
-        botResponse = `You're currently being treated for: ${patientData.condition}\n\nRecovery Stage: ${patientData.current_stage || 'In progress'}\nEstimated Recovery Period: ${patientData.recovery_period || 'As advised by doctor'}\n\n${patientData.doctors_notes ? 'Doctor\'s Notes: ' + patientData.doctors_notes : ''}`;
+        botResponse = `You're currently being treated for: **${patientData.condition}**\n\nRecovery Stage: ${patientData.current_stage || 'In progress'}\nEstimated Recovery Period: ${patientData.recovery_period || 'As advised by doctor'}\n\n${patientData.doctors_notes ? '**Doctor\'s Notes:** ' + patientData.doctors_notes : ''}`;
       } else {
         botResponse = "I don't have your medical condition information. Please check your profile or contact your healthcare provider.";
       }
     } else if (lowerMessage.includes('medicine') || lowerMessage.includes('medication') || lowerMessage.includes('prescription')) {
       if (patientData && patientData.medications) {
-        let medResponse = '💊 Your Prescribed Medications:\n\n' + patientData.medications;
-        if (patientData.prescription) {
-          medResponse += '\n\nPrescription Details:\n' + patientData.prescription;
-        }
-        medResponse += '\n\n⚠️ Take medications as prescribed. Don\'t skip doses!';
-        botResponse = medResponse;
+        botResponse = `💊 **Your Prescribed Medications:**\n\n${patientData.medications}\n\n${patientData.prescription ? '**Prescription Details:**\n' + patientData.prescription : ''}\n\n⚠️ Take medications as prescribed. Don't skip doses!`;
       } else {
         botResponse = "I don't have your medication information. Please check your profile or contact your doctor.";
       }
     } else if (lowerMessage.includes('exercise') || lowerMessage.includes('physiotherapy') || lowerMessage.includes('workout')) {
       if (patientData && patientData.exercises) {
-        botResponse = '💪 Your Exercise Plan:\n\n' + patientData.exercises + '\n\nImportant:\n• Start slowly and gradually increase intensity\n• Stop if you feel severe pain\n• Follow your physiotherapist\'s guidance\n• Track your progress daily';
+        botResponse = `💪 **Your Exercise Plan:**\n\n${patientData.exercises}\n\n**Important:**\n• Start slowly and gradually increase intensity\n• Stop if you feel severe pain\n• Follow your physiotherapist's guidance\n• Track your progress daily`;
       } else {
         botResponse = "I don't have your specific exercise plan. Please consult your physiotherapist or check your profile for personalized exercises.";
       }
     } else if (lowerMessage.includes('diet') || lowerMessage.includes('food') || lowerMessage.includes('eat') || lowerMessage.includes('meal')) {
       if (patientData && patientData.diet) {
-        botResponse = '🥗 Your Personalized Diet Plan:\n\n' + patientData.diet + '\n\nGeneral Tips:\n• Stay hydrated (8-10 glasses of water)\n• Eat small, frequent meals\n• Avoid processed foods\n• Include protein in every meal';
+        botResponse = `🥗 **Your Personalized Diet Plan:**\n\n${patientData.diet}\n\n**General Tips:**\n• Stay hydrated (8-10 glasses of water)\n• Eat small, frequent meals\n• Avoid processed foods\n• Include protein in every meal`;
       } else {
         botResponse = "I don't have your specific diet plan. For personalized nutrition advice, please consult your dietitian or check your profile.";
       }
     } else if (lowerMessage.includes('pain') || lowerMessage.includes('hurt')) {
       const meds = patientData?.medications || 'your prescribed pain medication';
-      botResponse = 'I understand you\'re experiencing pain. Here\'s what you can do:\n\n• Take ' + meds + '\n• Apply ice packs for 15-20 minutes\n• Keep the affected area elevated\n• Avoid putting weight on it\n\n⚠️ If pain is severe or worsening, please contact your doctor immediately.';
+      botResponse = `I understand you're experiencing pain. Here's what you can do:\n\n• Take ${meds}\n• Apply ice packs for 15-20 minutes\n• Keep the affected area elevated\n• Avoid putting weight on it\n\n⚠️ If pain is severe or worsening, please contact your doctor immediately.`;
     } else if (lowerMessage.includes('exercise') || lowerMessage.includes('physiotherapy')) {
       botResponse = "Great that you're thinking about exercises! 💪\n\nBased on typical recovery protocols:\n• Start with gentle range-of-motion exercises\n• Follow your physiotherapist's instructions\n• Don't push through severe pain\n• Gradually increase intensity\n\nFor your specific exercise plan, check your profile or consult your physiotherapist.";
     } else if (lowerMessage.includes('diet') || lowerMessage.includes('food') || lowerMessage.includes('eat')) {
-      botResponse = "Nutrition is key to recovery! 🥗\n\nRecommended foods:\n• Protein: Chicken, fish, eggs, lentils\n• Calcium: Dairy, leafy greens, almonds\n• Vitamin D: Fatty fish, fortified foods\n• Vitamin C: Citrus fruits, berries\n\nAvoid:\n• Excessive sugar and processed foods\n• Alcohol\n• Smoking\n\nStay hydrated with 8-10 glasses of water daily!";
+      botResponse = "Nutrition is key to recovery! 🥗\n\n**Recommended foods:**\n• Protein: Chicken, fish, eggs, lentils\n• Calcium: Dairy, leafy greens, almonds\n• Vitamin D: Fatty fish, fortified foods\n• Vitamin C: Citrus fruits, berries\n\n**Avoid:**\n• Excessive sugar and processed foods\n• Alcohol\n• Smoking\n\nStay hydrated with 8-10 glasses of water daily!";
     } else if (lowerMessage.includes('medicine') || lowerMessage.includes('medication')) {
       botResponse = "For your medication information:\n\n1. Check your profile for prescribed medications\n2. Take medicines at the scheduled times\n3. Don't skip doses\n4. Report any side effects to your doctor\n\n💊 Need a reminder? I can help you set up medication alerts!";
     } else if (lowerMessage.includes('appointment') || lowerMessage.includes('doctor')) {
       botResponse = "To manage your appointments:\n\n1. Check your profile for upcoming appointments\n2. Contact your doctor if you need to reschedule\n3. Prepare questions before your visit\n\nWould you like me to help you schedule a follow-up?";
     } else if (lowerMessage.includes('anxious') || lowerMessage.includes('worried') || lowerMessage.includes('stress')) {
-      botResponse = "It's completely normal to feel anxious during recovery. 💙\n\nTry these techniques:\n• Deep breathing exercises (4-7-8 method)\n• Light meditation or mindfulness\n• Talk to loved ones\n• Focus on small daily achievements\n• Listen to calming music\n\nRemember: You're making progress every day! If anxiety persists, please speak with your healthcare provider.";
+      botResponse = "It's completely normal to feel anxious during recovery. 💙\n\n**Try these techniques:**\n• Deep breathing exercises (4-7-8 method)\n• Light meditation or mindfulness\n• Talk to loved ones\n• Focus on small daily achievements\n• Listen to calming music\n\nRemember: You're making progress every day! If anxiety persists, please speak with your healthcare provider.";
     } else if (lowerMessage.includes('sleep') || lowerMessage.includes('rest')) {
-      botResponse = "Quality sleep is essential for healing! 😴\n\nSleep tips:\n• Aim for 7-8 hours nightly\n• Keep a consistent sleep schedule\n• Elevate the injured area if needed\n• Avoid screens 1 hour before bed\n• Create a comfortable environment\n\nIf pain is disrupting sleep, consult your doctor about adjusting medication timing.";
+      botResponse = "Quality sleep is essential for healing! 😴\n\n**Sleep tips:**\n• Aim for 7-8 hours nightly\n• Keep a consistent sleep schedule\n• Elevate the injured area if needed\n• Avoid screens 1 hour before bed\n• Create a comfortable environment\n\nIf pain is disrupting sleep, consult your doctor about adjusting medication timing.";
     } else {
       if (patientData && patientData.name) {
-        botResponse = `Hi ${patientData.name}! 👋 I'm your wellness companion. How can I support you today?`;
+        botResponse = `Hello ${patientData.name}! 👋 I'm here to help with your recovery from ${patientData.condition || 'your condition'}.\n\nI can assist you with:\n• Your medications and prescriptions\n• Your exercise plan\n• Your diet recommendations\n• Pain management\n• Recovery progress\n• Emotional support\n\nWhat would you like to know about?`;
       } else {
         botResponse = `I'm here to help with your recovery! I can assist you with:\n\n• Pain management tips\n• Exercise and physiotherapy guidance\n• Dietary recommendations\n• Medication reminders\n• Appointment scheduling\n• Emotional support\n\nWhat would you like to know about?`;
       }
@@ -205,6 +255,9 @@ app.post('/api/chat', async (req, res) => {
       console.error('Error saving chat messages:', error.message);
     }
   }
+  
+  console.log('📤 Sending response to client. Response length:', botResponse.length);
+  console.log('Response type:', isGeneralChat ? 'General Chat (AI)' : 'Patient-Specific');
   
   res.json({
     success: true,

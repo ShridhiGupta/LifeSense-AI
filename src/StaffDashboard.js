@@ -8,11 +8,13 @@ function StaffDashboard() {
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [patientForm, setPatientForm] = useState({
     name: "",
     age: "",
     gender: "",
     condition: "",
+    surgeryDetails: "",
     recoveryPeriod: "",
     currentStage: "",
     doctorsNotes: "",
@@ -110,6 +112,7 @@ function StaffDashboard() {
           age: patientForm.age,
           gender: patientForm.gender,
           condition: patientForm.condition,
+          surgeryDetails: patientForm.surgeryDetails,
           recoveryPeriod: patientForm.recoveryPeriod,
           currentStage: patientForm.currentStage,
           doctorsNotes: patientForm.doctorsNotes,
@@ -172,6 +175,7 @@ function StaffDashboard() {
       age: "",
       gender: "",
       condition: "",
+      surgeryDetails: "",
       recoveryPeriod: "",
       currentStage: "",
       doctorsNotes: "",
@@ -188,6 +192,7 @@ function StaffDashboard() {
       age: patient.age,
       gender: patient.gender,
       condition: patient.condition,
+      surgeryDetails: patient.surgeryDetails,
       recoveryPeriod: patient.recoveryPeriod,
       currentStage: patient.currentStage,
       doctorsNotes: patient.doctorsNotes,
@@ -207,6 +212,7 @@ function StaffDashboard() {
       age: "",
       gender: "",
       condition: "",
+      surgeryDetails: "",
       recoveryPeriod: "",
       currentStage: "",
       doctorsNotes: "",
@@ -348,24 +354,56 @@ function StaffDashboard() {
     }}>
       {/* Sidebar */}
       <div style={{
-        width: "260px",
+        width: isSidebarCollapsed ? "70px" : "260px",
         background: "#fff",
         boxShadow: "2px 0 8px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
         position: "fixed",
         height: "100vh",
-        zIndex: 100
+        zIndex: 100,
+        transition: "width 0.3s ease",
+        overflow: "hidden"
       }}>
         {/* Logo */}
         <div style={{
           padding: "1.5rem",
-          borderBottom: "1px solid #E2E8F0"
+          borderBottom: "1px solid #E2E8F0",
+          position: "relative"
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: isSidebarCollapsed ? "center" : "flex-start" }}>
             <span style={{ fontSize: "1.5rem" }}>🩺</span>
-            <span style={{ fontSize: "1.25rem", fontWeight: "700", color: "#007bff" }}>LifeSense AI</span>
+            {!isSidebarCollapsed && (
+              <span style={{ fontSize: "1.25rem", fontWeight: "700", color: "#007bff" }}>LifeSense AI</span>
+            )}
           </div>
+          {/* Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{
+              position: "absolute",
+              right: isSidebarCollapsed ? "50%" : "10px",
+              top: "50%",
+              transform: isSidebarCollapsed ? "translate(50%, -50%)" : "translateY(-50%)",
+              background: "#007bff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.875rem",
+              boxShadow: "0 2px 6px rgba(0,123,255,0.3)",
+              transition: "all 0.3s ease",
+              zIndex: 10
+            }}
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? "→" : "←"}
+          </button>
         </div>
 
         {/* Navigation */}
@@ -384,12 +422,14 @@ function StaffDashboard() {
               fontWeight: activeTab === "dashboard" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Dashboard" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>🏠</span>
-            Dashboard
+            {!isSidebarCollapsed && "Dashboard"}
           </button>
           <button
             onClick={() => setActiveTab("view-patients")}
@@ -405,12 +445,14 @@ function StaffDashboard() {
               fontWeight: activeTab === "view-patients" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? `Patients (${patients.length})` : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>👥</span>
-            Patients ({patients.length})
+            {!isSidebarCollapsed && `Patients (${patients.length})`}
           </button>
           <button
             onClick={() => setActiveTab("add-patient")}
@@ -426,12 +468,14 @@ function StaffDashboard() {
               fontWeight: activeTab === "add-patient" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Add Patient" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>➕</span>
-            Add Patient
+            {!isSidebarCollapsed && "Add Patient"}
           </button>
           <button
             onClick={() => setActiveTab("analytics")}
@@ -447,12 +491,14 @@ function StaffDashboard() {
               fontWeight: activeTab === "analytics" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Analytics" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>📈</span>
-            Analytics
+            {!isSidebarCollapsed && "Analytics"}
           </button>
           <button
             onClick={() => setActiveTab("settings")}
@@ -468,12 +514,14 @@ function StaffDashboard() {
               fontWeight: activeTab === "settings" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Settings" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>⚙️</span>
-            Settings
+            {!isSidebarCollapsed && "Settings"}
           </button>
         </nav>
 
@@ -490,16 +538,22 @@ function StaffDashboard() {
               borderRadius: "0.5rem",
               cursor: "pointer",
               fontWeight: "600",
-              fontSize: "0.95rem"
+              fontSize: "0.95rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem"
             }}
+            title={isSidebarCollapsed ? "Logout" : ""}
           >
-            🔴 Logout
+            <span>🔴</span>
+            {!isSidebarCollapsed && "Logout"}
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div style={{ marginLeft: "260px", flex: 1 }}>
+      <div style={{ marginLeft: isSidebarCollapsed ? "70px" : "260px", flex: 1, transition: "margin-left 0.3s ease" }}>
         {/* Top Header */}
         <div style={{
           background: "#fff",
@@ -721,6 +775,19 @@ function StaffDashboard() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div>
                     <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontWeight: "500" }}>
+                      Surgery Details
+                    </label>
+                    <input
+                      type="text"
+                      name="surgeryDetails"
+                      value={patientForm.surgeryDetails}
+                      onChange={handlePatientFormChange}
+                      style={inputStyle}
+                      placeholder="Enter surgery type/date"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontWeight: "500" }}>
                       Recovery Period
                     </label>
                     <input
@@ -732,6 +799,9 @@ function StaffDashboard() {
                       placeholder="e.g., 2.5 months"
                     />
                   </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div>
                     <label style={{ display: "block", marginBottom: "0.5rem", color: "#374151", fontWeight: "500" }}>
                       Current Stage
@@ -744,6 +814,8 @@ function StaffDashboard() {
                       style={inputStyle}
                       placeholder="e.g., Week 3 (mild swelling)"
                     />
+                  </div>
+                  <div style={{ visibility: "hidden" }}>
                   </div>
                 </div>
 
@@ -923,6 +995,7 @@ function StaffDashboard() {
                     <p style={{ margin: 0, color: "#6b7280" }}><strong>Age:</strong> {patient.age}</p>
                     <p style={{ margin: 0, color: "#6b7280" }}><strong>Gender:</strong> {patient.gender}</p>
                     <p style={{ margin: 0, color: "#6b7280" }}><strong>Condition:</strong> {patient.condition}</p>
+                    <p style={{ margin: 0, color: "#6b7280" }}><strong>Surgery Details:</strong> {patient.surgeryDetails || 'Not specified'}</p>
                     <p style={{ margin: 0, color: "#6b7280" }}><strong>Recovery Period:</strong> {patient.recoveryPeriod}</p>
                   </div>
 

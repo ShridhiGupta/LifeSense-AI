@@ -34,8 +34,10 @@ coverage/
 
 # React build
 react-scripts/
-public/
+# Note: public/ folder is needed for React and Netlify, so it's NOT ignored
 
 # Logs
 logs/
 *.log
+
+.early.coverage

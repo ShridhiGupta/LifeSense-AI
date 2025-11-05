@@ -16,6 +16,7 @@ function AdminDashboard() {
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [visibleStaffPasswords, setVisibleStaffPasswords] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -278,25 +279,59 @@ function AdminDashboard() {
     }}>
       {/* Sidebar */}
       <div style={{
-        width: "280px",
+        width: isSidebarCollapsed ? "70px" : "280px",
         background: "#fff",
         boxShadow: "2px 0 8px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
         position: "fixed",
         height: "100vh",
-        zIndex: 100
+        zIndex: 100,
+        transition: "width 0.3s ease",
+        overflow: "hidden"
       }}>
         {/* Logo */}
         <div style={{
           padding: "1.5rem",
-          borderBottom: "1px solid #E2E8F0"
+          borderBottom: "1px solid #E2E8F0",
+          position: "relative"
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: isSidebarCollapsed ? "center" : "flex-start" }}>
             <span style={{ fontSize: "1.5rem" }}>🏥</span>
-            <span style={{ fontSize: "1.25rem", fontWeight: "700", color: "#007bff" }}>LifeSense AI</span>
+            {!isSidebarCollapsed && (
+              <span style={{ fontSize: "1.25rem", fontWeight: "700", color: "#007bff" }}>LifeSense AI</span>
+            )}
           </div>
-          <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "#64748b" }}>Admin Portal</p>
+          {!isSidebarCollapsed && (
+            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "#64748b" }}>Admin Portal</p>
+          )}
+          {/* Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{
+              position: "absolute",
+              right: isSidebarCollapsed ? "50%" : "10px",
+              top: "50%",
+              transform: isSidebarCollapsed ? "translate(50%, -50%)" : "translateY(-50%)",
+              background: "#007bff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.875rem",
+              boxShadow: "0 2px 6px rgba(0,123,255,0.3)",
+              transition: "all 0.3s ease",
+              zIndex: 10
+            }}
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? "→" : "←"}
+          </button>
         </div>
 
         {/* Navigation */}
@@ -315,12 +350,14 @@ function AdminDashboard() {
               fontWeight: activeTab === "dashboard" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Dashboard" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>🏠</span>
-            Dashboard
+            {!isSidebarCollapsed && "Dashboard"}
           </button>
           <button
             onClick={() => setActiveTab("staff-approval")}
@@ -336,12 +373,15 @@ function AdminDashboard() {
               fontWeight: activeTab === "staff-approval" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
-              transition: "all 0.2s"
+              transition: "all 0.2s",
+              position: "relative"
             }}
+            title={isSidebarCollapsed ? `Staff Approval (${pendingStaff.length})` : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>⏳</span>
-            Staff Approval
+            {!isSidebarCollapsed && "Staff Approval"}
             {pendingStaff.length > 0 && (
               <span style={{
                 background: "#f59e0b",
@@ -350,7 +390,10 @@ function AdminDashboard() {
                 borderRadius: "0.5rem",
                 fontSize: "0.75rem",
                 fontWeight: "700",
-                marginLeft: "auto"
+                marginLeft: isSidebarCollapsed ? "0" : "auto",
+                position: isSidebarCollapsed ? "absolute" : "static",
+                top: isSidebarCollapsed ? "5px" : "auto",
+                right: isSidebarCollapsed ? "5px" : "auto"
               }}>
                 {pendingStaff.length}
               </span>
@@ -370,12 +413,14 @@ function AdminDashboard() {
               fontWeight: activeTab === "approved-staff" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? `Approved Staff (${approvedStaff.length})` : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>👥</span>
-            Approved Staff ({approvedStaff.length})
+            {!isSidebarCollapsed && `Approved Staff (${approvedStaff.length})`}
           </button>
           <button
             onClick={() => setActiveTab("patients")}
@@ -391,12 +436,14 @@ function AdminDashboard() {
               fontWeight: activeTab === "patients" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? `All Patients (${allPatients.length})` : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>🩺</span>
-            All Patients ({allPatients.length})
+            {!isSidebarCollapsed && `All Patients (${allPatients.length})`}
           </button>
           <button
             onClick={() => setActiveTab("manage-admins")}
@@ -412,12 +459,14 @@ function AdminDashboard() {
               fontWeight: activeTab === "manage-admins" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? `Manage Admins (${allAdmins.length})` : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>⚙️</span>
-            Manage Admins ({allAdmins.length})
+            {!isSidebarCollapsed && `Manage Admins (${allAdmins.length})`}
           </button>
           <button
             onClick={() => setActiveTab("create-admin")}
@@ -433,12 +482,14 @@ function AdminDashboard() {
               fontWeight: activeTab === "create-admin" ? "600" : "500",
               display: "flex",
               alignItems: "center",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
               transition: "all 0.2s"
             }}
+            title={isSidebarCollapsed ? "Create Admin" : ""}
           >
             <span style={{ fontSize: "1.25rem" }}>➕</span>
-            Create Admin
+            {!isSidebarCollapsed && "Create Admin"}
           </button>
         </nav>
 
@@ -455,16 +506,22 @@ function AdminDashboard() {
               borderRadius: "0.5rem",
               cursor: "pointer",
               fontWeight: "600",
-              fontSize: "0.95rem"
+              fontSize: "0.95rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem"
             }}
+            title={isSidebarCollapsed ? "Logout" : ""}
           >
-            🔴 Logout
+            <span>🔴</span>
+            {!isSidebarCollapsed && "Logout"}
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div style={{ marginLeft: "280px", flex: 1 }}>
+      <div style={{ marginLeft: isSidebarCollapsed ? "70px" : "280px", flex: 1, transition: "margin-left 0.3s ease" }}>
         {/* Top Header */}
         <div style={{
           background: "#fff",
