@@ -9,8 +9,8 @@ dotenv.config();
 const app = express();
 const port = 3001;
 
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+// MongoDB connection - must be set in .env file
+const MONGODB_URI = process.env.MONGODB_URI;
 let db = null;
 let mongoClient = null;
 

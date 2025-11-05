@@ -251,9 +251,11 @@ Try these queries:
 Make sure these are set:
 
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
+MONGODB_URI=your_mongodb_connection_string_here
 GOOGLE_API_KEY=your_google_api_key_here
 ```
+
+**Note:** Never commit actual credentials to version control. Store them securely in your `.env` file which is gitignored.
 
 ## Benefits
 

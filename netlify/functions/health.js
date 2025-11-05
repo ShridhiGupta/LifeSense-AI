@@ -23,7 +23,10 @@ exports.handler = async (event, context) => {
   let dbMessage = '';
   
   try {
-    const uri = "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
     const client = new MongoClient(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

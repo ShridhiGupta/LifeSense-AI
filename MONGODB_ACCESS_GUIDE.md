@@ -19,10 +19,12 @@
 
 ### The MongoDB URI Already Supports All Collections!
 
-Your current URI:
+Your MongoDB URI format:
 ```
-mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster
+mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=<AppName>
 ```
+
+**Security Note:** Store your actual MongoDB URI in the `.env` file, never in documentation or code.
 
 This URI connects to the **entire cluster**, not just Admin. You can access any collection by specifying:
 - Database name: `LifeSenseAI`
@@ -255,12 +257,11 @@ Already configured to access all collections - just deploy!
 To visually access all your collections:
 
 1. Download MongoDB Compass: https://www.mongodb.com/products/compass
-2. Connect using URI:
-   ```
-   mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/
-   ```
+2. Connect using your MongoDB URI from the `.env` file
 3. Select database: `LifeSenseAI`
 4. View all collections: Admin, Staff, Patients, ChatMessages
+
+**Security:** Never share your MongoDB connection string publicly.
 
 ---
 

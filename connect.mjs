@@ -4,8 +4,13 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Your connection URI from Atlas
-const uri = process.env.MONGODB_URI || "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+// Your connection URI from Atlas - must be set in .env file
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  console.error('❌ MONGODB_URI environment variable is not set');
+  process.exit(1);
+}
 
 // Create a MongoClient instance
 const client = new MongoClient(uri);

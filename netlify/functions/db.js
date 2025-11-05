@@ -1,7 +1,11 @@
 const { MongoClient } = require('mongodb');
 
-// MongoDB connection URI - use environment variable in production
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+// MongoDB connection URI - must be set in environment variables
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI environment variable is not set');
+}
 
 let cachedClient = null;
 let cachedDb = null;

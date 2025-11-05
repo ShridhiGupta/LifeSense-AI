@@ -1,9 +1,18 @@
 import { MongoClient } from 'mongodb';
 
-// MongoDB connection URI provided by user
-const uri = "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+// MongoDB connection URI from environment variables
+import dotenv from 'dotenv';
+dotenv.config();
 
-console.log('Using MongoDB URI:', uri);
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  console.error('❌ MONGODB_URI environment variable is not set');
+  console.log('Please create a .env file with your MongoDB connection string');
+  process.exit(1);
+}
+
+console.log('Using MongoDB URI from environment variables');
 
 // Create a MongoClient instance
 const client = new MongoClient(uri);

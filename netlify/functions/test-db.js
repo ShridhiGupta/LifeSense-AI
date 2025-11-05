@@ -19,8 +19,11 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Get the MongoDB URI - hardcoded
-    const uri = "mongodb+srv://guptashridhi11_db_user:06fkqEIi5ejpN6TE@lifesensecluster.vq6odzf.mongodb.net/?appName=LifeSenseCluster";
+    // Get the MongoDB URI from environment variables
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
     
     // Create a MongoClient instance
     const client = new MongoClient(uri, {
